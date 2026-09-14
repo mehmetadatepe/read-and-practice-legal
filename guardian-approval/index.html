@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>Read &amp; Practice — Veli Onayı</title>
+<style>body{margin:0;background:#f7f2e5;color:#26352b;font:17px system-ui}main{max-width:680px;margin:8vh auto;padding:28px;background:#fff;border-radius:20px;box-shadow:0 8px 30px #0001}h1{font-size:27px}button{padding:12px 18px;margin:6px;border:0;border-radius:12px;font-weight:700}#yes{background:#356b49;color:white}#no{background:#eee}.muted{color:#59675e;font-size:14px}</style></head>
+<body><main><h1>Veli onayı / Guardian approval</h1><div id="content">
+<p>Bu bağlantı, Read &amp; Practice hesabı oluşturulmadan önce ayrı bir e-posta tabanlı veli onayı ister.</p>
+<p>This link requests separate email-based guardian approval before a Read &amp; Practice account is created.</p>
+<p>Onay; hesap, öğrenme ilerlemesi, pratik cevapları ve AI değerlendirmesi için veri işlenmesine ilişkindir. Bu işlem veli kimliğini doğrulamaz.</p>
+<p class="muted">Approval does not verify guardian identity. No account has been created yet.</p>
+<button id="yes">Onaylıyorum / Approve</button><button id="no">Reddediyorum / Reject</button></div>
+<p id="result" role="status"></p></main><script>
+const endpoint='https://jqbqhfgdauyfuzmenthr.supabase.co/functions/v1/guardian-approval';
+const token=new URLSearchParams(location.hash.slice(1)).get('token'); history.replaceState(null,'',location.pathname);
+async function decide(approved){const out=document.querySelector('#result');document.querySelector('#content').hidden=true;
+if(!token){out.textContent='Bağlantı geçersiz. / Invalid link.';return}out.textContent='İşleniyor… / Processing…';
+try{const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token,approved})});
+out.textContent=r.ok?(approved?'Onay kaydedildi. Uygulamada devam edebilirsiniz. / Approval recorded. Continue in the app.':'İstek reddedildi. / Request rejected.'):'Bağlantı geçersiz veya süresi dolmuş. / Invalid or expired link.'}
+catch(_){out.textContent='İşlem tamamlanamadı. Daha sonra tekrar deneyin. / Please try again later.'}}
+document.querySelector('#yes').onclick=()=>decide(true);document.querySelector('#no').onclick=()=>decide(false);
+</script></body></html>
