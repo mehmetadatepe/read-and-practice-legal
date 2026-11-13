@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Read & Practice: çocuklar için seviyeli İngilizce hikâyeler. Ücretsiz, reklamsız.">
+  <title>Read &amp; Practice — İndir</title>
+  <style>
+    :root { color-scheme:light; --ink:#17352d; --muted:#52645f; --paper:#f7faf8; --card:#fff; --accent:#1f765d; --accent-dark:#155440; --line:#d9e5e0; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--paper); color:var(--ink); line-height:1.5; display:flex; align-items:center; justify-content:center; }
+    main { width:min(460px,calc(100% - 32px)); padding:40px 0; text-align:center; }
+    .brand { color:var(--accent); font-weight:800; letter-spacing:.06em; font-size:.9rem; }
+    h1 { margin:.4rem 0 .6rem; font-size:2.2rem; line-height:1.1; letter-spacing:-.03em; }
+    p { margin:0 0 24px; color:var(--muted); }
+    .buttons { display:grid; gap:12px; }
+    a.button { display:block; padding:16px 20px; border-radius:14px; background:var(--accent); color:#fff; font-weight:700; text-decoration:none; font-size:1.05rem; }
+    a.button.secondary { background:var(--card); color:var(--accent-dark); border:1px solid var(--line); }
+    #status { margin-top:20px; font-size:.92rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">READ &amp; PRACTICE</div>
+    <h1>İngilizce hikâyeler</h1>
+    <p>Seviyeye göre yazılmış hikâyeler, kelime çevirisi ve alıştırmalar. Ücretsiz ve reklamsız.</p>
+    <div class="buttons">
+      <a class="button" id="play" href="https://play.google.com/store/apps/details?id=com.readandpractice.app">Google Play'den indir (Android)</a>
+      <a class="button secondary" id="appstore" href="https://apps.apple.com/tr/app/read-practice/id6812680671">App Store'dan indir (iPhone, iPad)</a>
+    </div>
+    <p id="status"></p>
+  </main>
+  <script>
+    // Each shared link carries its own name (?k=abi-1) so that clicks and
+    // installs can be counted per link. Only a counter per day, link and phone
+    // type is stored (count_link_click, SQL 024); no personal data.
+    (function () {
+      var SUPABASE_URL = "https://jqbqhfgdauyfuzmenthr.supabase.co";
+      var PUBLISHABLE_KEY = "sb_publishable_XtxPAdblidCsiSgugr3t8g_8DLvQv47";
+      // App Store Connect > Analytics > Sources > campaign link: the "pt" value.
+      // While empty, iPhone visitors go to the plain App Store page.
+      var APPLE_PROVIDER_TOKEN = "";
+      var PLAY = "https://play.google.com/store/apps/details?id=com.readandpractice.app";
+      var APP_STORE = "https://apps.apple.com/tr/app/read-practice/id6812680671";
+
+      var raw = new URLSearchParams(location.search).get("k") || "dogrudan";
+      var source = raw.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30) || "dogrudan";
+      var ua = navigator.userAgent || "";
+      var platform = /android/i.test(ua) ? "android"
+        : (/iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) ? "ios"
+        : "other";
+
+      var play = PLAY + "&referrer=" + encodeURIComponent(
+        "utm_source=" + source + "&utm_medium=social&utm_campaign=" + source);
+      var appStore = APPLE_PROVIDER_TOKEN
+        ? APP_STORE + "?pt=" + encodeURIComponent(APPLE_PROVIDER_TOKEN) + "&ct=" + encodeURIComponent(source) + "&mt=8"
+        : APP_STORE;
+      document.getElementById("play").href = play;
+      document.getElementById("appstore").href = appStore;
+
+      var counted;
+      try {
+        counted = fetch(SUPABASE_URL + "/rest/v1/rpc/count_link_click", {
+          method: "POST",
+          keepalive: true,
+          headers: { "apikey": PUBLISHABLE_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ p_source: source, p_platform: platform })
+        }).catch(function () {});
+      } catch (e) {
+        counted = Promise.resolve();
+      }
+
+      if (platform === "other") return;
+      document.getElementById("status").textContent = "Mağazaya yönlendiriliyorsunuz…";
+      var target = platform === "android" ? play : appStore;
+      var go = function () { location.replace(target); };
+      // Do not keep the visitor waiting for the counter.
+      Promise.race([counted, new Promise(function (r) { setTimeout(r, 700); })]).then(go, go);
+    })();
+  </script>
+</body>
+</html>
